@@ -1,0 +1,138 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) 2017-2019 FIRST. All Rights Reserved.                        */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in the root directory of */
+/* the project.                                                               */
+/*----------------------------------------------------------------------------*/
+
+package frc.robot;
+
+
+import edu.wpi.first.wpilibj.VictorSP;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Solenoid;
+
+/**
+ * This is a demo program showing the use of the DifferentialDrive class.
+ * Runs the motors with arcade steering.
+ */
+public class Robot extends TimedRobot {
+  private final WPI_TalonFX FrontLeftMotor = new WPI_TalonFX(0);
+  private final WPI_TalonFX FrontRightMotor = new WPI_TalonFX(1);
+  private final WPI_TalonFX BackLeftMotor = new WPI_TalonFX(2);
+  private final WPI_TalonFX BackRightMotor = new WPI_TalonFX(3);
+  private final DifferentialDrive m_robotDrive = new DifferentialDrive(FrontLeftMotor, FrontRightMotor);
+  private final XboxController Driver = new XboxController(0);
+  private final Solenoid Shifter = new Solenoid(0);
+  //Operator
+  private final XboxController Operator = new XboxController(1);
+  private final VictorSP Threadmill = new VictorSP(0);
+  private final VictorSP Top_Flywheels = new VictorSP(1);
+  private final VictorSP Bottom_Flywheels = new VictorSP(2);
+  private int DriveMode = 0;
+  private int Left_ShiftMode = 0;
+  private int Right_ShiftMode = 0;
+
+  @Override
+  public void robotPeriodic(){
+    boolean b_start = Driver.getStartButton();
+    boolean b_back = Driver.getBackButton();
+    if (b_back && (DriveMode == 1)) {
+      DriveMode = 0;
+    } else if (b_start && (DriveMode == 0)) {
+      DriveMode = 1;
+    }
+    boolean Button_A = Driver.getAButton();
+    if (Button_A && (Left_ShiftMode==0) && (Right_ShiftMode==0)){
+      Left_ShiftMode = 1;
+      Right_ShiftMode = 1;
+    }
+  }
+
+  @Override
+  public void teleopInit() {
+    FrontLeftMotor.follow(BackLeftMotor);
+    FrontRightMotor.follow(BackRightMotor);
+  }
+  @Override
+  public void teleopPeriodic() {
+    // Drive with arcade drive.
+    // That means that the Y axis drives forward
+    // and backward, and the X turns left and right.
+    m_robotDrive.arcadeDrive(acceleration(DriveMode), Driver.getX(GenericHID.Hand.kRight));
+    //Variables for shifting
+    boolean Value_Shifter = Shifter.get();
+    //boolean Driver_RightBumper = Driver.getBumper(GenericHID.Hand.kRight);
+    //boolean Driver_LeftBumper = Driver.getBumper(GenericHID.Hand.kLeft);
+
+    if (Left_Shifting(Left_ShiftMode) && Right_Shifting(Right_ShiftMode))
+    {
+      return;
+    }
+    else if(Left_Shifting(Left_ShiftMode) && Value_Shifter){
+      Shifter.set(false);
+    }
+    else if(Right_Shifting(Right_ShiftMode) && !Value_Shifter){
+      Shifter.set(true);
+    }
+
+    //Variable and Conditionals for the Intake
+    boolean Operator_RB = Operator.getBumper(GenericHID.Hand.kRight);
+
+    if (Operator_RB == true){
+      Threadmill.set(1);
+    }
+    else if (Operator_RB == false){
+      Threadmill.set(0);
+    }
+
+    //Flywheels
+    Top_Flywheels.set(Operator.getY(GenericHID.Hand.kLeft));
+    Bottom_Flywheels.set(Operator.getY(GenericHID.Hand.kRight));
+    if (Bottom_Flywheels.get()-Top_Flywheels.get() == 0.1){
+      Top_Flywheels.set(Bottom_Flywheels.get());
+    }
+    if(Top_Flywheels.get()-Bottom_Flywheels.get() == 0.1){
+      Top_Flywheels.set(Bottom_Flywheels.get());
+    }
+    
+
+  }
+  public double acceleration(int mode) {
+    if (mode == 0) {
+      return Driver.getY();
+    } else if (mode == 1) {
+      double Left_trigger_value = (Driver.getTriggerAxis(GenericHID.Hand.kLeft)+1)/2;
+      double Right_trigger_value = (Driver.getTriggerAxis(GenericHID.Hand.kRight)+1)/2;
+      return Left_trigger_value-Right_trigger_value;
+    }
+    return 0;
+  }
+  public boolean Left_Shifting(int mode){
+    if (mode == 0){
+      boolean Driver_LeftBumper = Driver.getBumper(GenericHID.Hand.kLeft);
+      return Driver_LeftBumper;
+    }
+    else if (mode == 1){
+      boolean Driver_LeftStickButton = Driver.getStickButton(GenericHID.Hand.kLeft);
+      return Driver_LeftStickButton;
+    }  
+    return false;
+  } 
+  public boolean Right_Shifting(int mode){
+    if (mode==0){
+      boolean Driver_RightBumper = Driver.getBumperReleased(GenericHID.Hand.kRight);
+      return Driver_RightBumper;
+    }
+    else if (mode==1){
+      boolean Driver_RightStickButton = Driver.getStickButton(GenericHID.Hand.kRight);
+      return Driver_RightStickButton;
+    }
+    return false;
+  }
+}
+

@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
@@ -14,6 +15,9 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.Solenoid;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+//import com.ctre.phoenix.motorcontrol.can.TalonFX.getSensorCollection;
+//import com.ctre.phoenix.motorcontrol.TalonFXSensorCollection.getIntegratedSensorPosition;
+
 
 /**
  * This is a demo program showing the use of the DifferentialDrive class. Runs the motors with
@@ -21,6 +25,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
  */
 public class Robot extends TimedRobot {
     // Drive with arcade drive.
+  private final Encoder encoder = new Encoder(0,1);
   private final WPI_TalonFX m_leftfrontMotor = new WPI_TalonFX(3);
   private final WPI_TalonFX m_leftrearMotor = new WPI_TalonFX(2);
   private final WPI_TalonFX m_rightrearMotor = new WPI_TalonFX(1);
@@ -32,10 +37,10 @@ public class Robot extends TimedRobot {
 
   //Operator
   private final XboxController Operator = new XboxController(1);
-  private final VictorSPX Threadmill = new VictorSPX(0); 
-  private final VictorSPX TopMotor = new VictorSPX(1);
-  private final VictorSPX BottomMotor = new VictorSPX(2);
-  private final VictorSPX Intake =  new VictorSPX(3);
+  private final VictorSPX Threadmill = new VictorSPX(1); 
+  private final VictorSPX TopMotor = new VictorSPX(3);
+  private final VictorSPX BottomMotor = new VictorSPX(0);
+  private final VictorSPX Intake =  new VictorSPX(2);
   
   @Override
   public void teleopInit() {
@@ -77,8 +82,9 @@ public class Robot extends TimedRobot {
       Intake.set(ControlMode.PercentOutput, 0);
     }
 
-    TopMotor.set(ControlMode.PercentOutput, Operator.getY());
-    BottomMotor.set(ControlMode.PercentOutput, Operator.getY(GenericHID.Hand.kRight));
+    TopMotor.set(ControlMode.PercentOutput, Operator.getTriggerAxis(GenericHID.Hand.kRight)-0.2);
+    BottomMotor.set(ControlMode.PercentOutput, Operator.getTriggerAxis(GenericHID.Hand.kLeft)-0.2);
+    
     //Shifting
     if (b_left_bumper && b_right_bumper) {
       return;
@@ -90,7 +96,7 @@ public class Robot extends TimedRobot {
     //Threadmill(Intake)
 
     if (o_right_bumper == true){
-      Threadmill.set(ControlMode.PercentOutput, 1);
+      Threadmill.set(ControlMode.PercentOutput, 0.5);
     }
     else {
       Threadmill.set(ControlMode.PercentOutput, 0);
@@ -109,4 +115,89 @@ public class Robot extends TimedRobot {
     }
     return 0;
   }
+  /*
+  @Override
+  public void AutonomousInit() {
+    double Encoder_Left = m_leftfrontMotor.getSensorCollection();
+    double Encoder_Right = m_rightfrontMotor.getSensorCollection();
+    int D = 20
+  }
+  public double forward(){
+    m_leftfrontMotor.set(0.5);
+    m_rightfrontMotor.set(0.5);
+  }
+  public double turn_right(){
+    m_leftfrontMotor.set(0.5);
+    m_rightfrontMotor.set(0);
+  }
+  public double turn_circle(){
+    m_leftfrontMotor.set(0.3;
+    m_rightfrontMotor.set(0.8);
+  }
+  public void Slamon_Path() {
+
+    if((Encoder_Left.getIntegratedSensorPosition()<5) (&& Encoder_Right.getIntegratedSensorPosition() < 5)) {
+      forward();
+    } 
+    else {
+      return;
+    } 
+    if ((Encoder_Left.getIntegratedSensorPosition()<3) (&& Encoder_Right.getIntegratedSensorPosition() < 3)){
+      turn_right();
+    }
+    else {
+      return;
+    }
+    if ((Encoder_Left.getIntegratedSensorPosition()<D) (&& Encoder_Right.getIntegratedSensorPosition() < D)){
+      forward();
+    }
+    else{
+      return;
+    }
+    if ((Encoder_Left.getIntegratedSensorPosition()<3) (&& Encoder_Right.getIntegratedSensorPosition() < 3)){
+      turn_right();
+    }
+    else{
+      return;
+    }
+    if ((Encoder_Left.getIntegratedSensorPosition()<5) (&& Encoder_Right.getIntegratedSensorPosition() < 5)){
+      forward();
+      }
+    else{
+      return;
+    }
+    if ((Encoder_Left.getIntegratedSensorPosition()<5) (&& Encoder_Right.getIntegratedSensorPosition() < 5)){
+      turn_circle();
+    }
+    else{
+      return;
+    }
+    if ((Encoder_Left.getIntegratedSensorPosition()<3) (&& Encoder_Right.getIntegratedSensorPosition() < 3)){
+      turn_right();
+    }
+    else{
+      return;
+    }
+    if  ((Encoder_Left.getIntegratedSensorPosition()<D) (&& Encoder_Right.getIntegratedSensorPosition() < D)){
+      forward();
+    }
+    else{
+      return;
+    }
+    if  ((Encoder_Left.getIntegratedSensorPosition()<3) (&& Encoder_Right.getIntegratedSensorPosition() < 3)){
+      turn_right();
+    }
+    else{
+      return;
+    }
+    if  ((Encoder_Left.getIntegratedSensorPosition()<5) (&& Encoder_Right.getIntegratedSensorPosition() < 5)){
+      forward();
+    }
+    else{
+      return;
+    }
+
+  }
+  public void Bounce_Path
+ */
 }
